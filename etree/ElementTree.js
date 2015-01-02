@@ -16,7 +16,8 @@ var $builtinmodule = function(name) {
 
   var Element = function($gbl, $loc) {
     $loc.__init__ = new Sk.builtin.func(function(self, doc) {
-      var attrib = [];
+      var attrib = [],
+          i;
 
       self.tag       = doc.tagName;
       self.text      = '';
@@ -33,7 +34,7 @@ var $builtinmodule = function(name) {
       }
 
       if (doc.attributes) {
-        for (var i = 0; i < doc.attributes.length; i++) {
+        for (i = 0; i < doc.attributes.length; i++) {
           self.attrib.push(doc.attributes[i].name);
           self.attrib.push(doc.attributes[i].value);
 
@@ -44,15 +45,15 @@ var $builtinmodule = function(name) {
         }
       }
 
-      Sk.abstr.objectSetItem(self['$d'], new Sk.builtin.str('tag'),    new Sk.builtin.str(doc.tagName));
-      Sk.abstr.objectSetItem(self['$d'], new Sk.builtin.str('attrib'), new Sk.builtin.dict(attrib));
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str('tag'),    new Sk.builtin.str(doc.tagName));
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str('attrib'), new Sk.builtin.dict(attrib));
 
       if (doc.childNodes) {
-        for (var i = 0; i < doc.childNodes.length; i++) {
+        for (i = 0; i < doc.childNodes.length; i++) {
           var child = Sk.misceval.callsim(mod.Element, doc.childNodes[i]);
           if (child.text !== undefined && !child.children_.length) {
             self.text = child.text;
-            Sk.abstr.objectSetItem(self['$d'], new Sk.builtin.str('text'), new Sk.builtin.str(child.text));
+            Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str('text'), new Sk.builtin.str(child.text));
           }
           self.children_.push(child);
         }
@@ -80,7 +81,7 @@ var $builtinmodule = function(name) {
       else {
         throw new Sk.builtin.TypeError("indices must be numbers, not " + typeof index);
       }
-    }
+    };
 
     $loc.__str__ = new Sk.builtin.func(function(self) {
       return Sk.ffi.remapToPy('<xml.etree.ElementTree.Element>');
@@ -103,8 +104,9 @@ var $builtinmodule = function(name) {
     $loc.iter = $loc.__iter__;
 
     $loc.iterfind = new Sk.builtin.func(function(self, path) {
-      var path     = Sk.ffi.remapToJs(path),
-          children = self.children_;
+      var children = self.children_;
+
+      path = Sk.ffi.remapToJs(path);
 
       return Sk.builtin.makeGenerator(function() {
         var index = this.$index;
@@ -213,7 +215,7 @@ var $builtinmodule = function(name) {
       self.attrib.push(key);
       self.attrib.push(val);
 
-      Sk.abstr.objectSetItem(self['$d'], new Sk.builtin.str('attrib'), new Sk.builtin.dict(self.attrib));
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str('attrib'), new Sk.builtin.dict(self.attrib));
 
       return;
     });
@@ -252,8 +254,8 @@ var $builtinmodule = function(name) {
       self.attrib    = [];
       self.children_ = [];
 
-      Sk.abstr.objectSetItem(self['$d'], new Sk.builtin.str('text'),   new Sk.builtin.str(self.text));
-      Sk.abstr.objectSetItem(self['$d'], new Sk.builtin.str('attrib'), new Sk.builtin.dict(self.attrib));
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str('text'),   new Sk.builtin.str(self.text));
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str('attrib'), new Sk.builtin.dict(self.attrib));
     });
   };
 
@@ -273,15 +275,13 @@ var $builtinmodule = function(name) {
   mod.XML = mod.parse = mod.fromstring;
 
   mod.tostring = new Sk.builtin.func(function(element) {
-    var xml_str;
-    var tag_start;
-    var element_content = [];
-    var tag_end;
-    var attrib_list = "";
+    var element_content = [],
+        attrib_list = "",
+        xml_str, tag_start, tag_end, i;
 
     // <tag attrib>text</tag>
     tag_start = "<" + element.tag;
-    for (var i = 0; i < element.attrib.length; i += 2) {
+    for (i = 0; i < element.attrib.length; i += 2) {
       attrib_list += " " + element.attrib[i] + "='" + element.attrib[i + 1] + "'";
     }
     tag_start += attrib_list + ">";
@@ -290,7 +290,7 @@ var $builtinmodule = function(name) {
       element_content.push( element.text );
     }
     else {
-      for (var i = 0; i < element.children_.length; i++) {
+      for (i = 0; i < element.children_.length; i++) {
         element_content.push( Sk.ffi.remapToJs( Sk.misceval.callsim(mod.tostring, element.children_[i]) ) );
       }
     }
@@ -303,4 +303,4 @@ var $builtinmodule = function(name) {
   });
 
   return mod;
-}
+};
