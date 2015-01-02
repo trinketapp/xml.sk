@@ -1,0 +1,27 @@
+{
+  "name": "xml.sk",
+  "version": "0.0.0",
+  "homepage": "https://github.com/trinketapp/xml.sk",
+  "authors": [
+    "Brian Marks <brianpmarks@gmail.com>"
+  ],
+  "description": "XML module for Skulpt.",
+  "main": "__init__.js",
+  "dependencies": {
+    "skulpt": "master"
+  },
+  "keywords": [
+    "skulpt",
+    "python",
+    "xml",
+    "javascript"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
