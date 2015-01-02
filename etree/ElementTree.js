@@ -7,12 +7,12 @@ var $builtinmodule = function(name) {
     });
 
     $loc.__str__ = new Sk.builtin.func(function(self) {
-      return Sk.ffi.remapToPy('<xml.etree.ElementTree>');
+      return Sk.ffi.remapToPy("<xml.etree.ElementTree>");
     });
   };
 
   mod.ElementTree =
-    Sk.misceval.buildClass(mod, ElementTree, 'ElementTree', []);
+    Sk.misceval.buildClass(mod, ElementTree, "ElementTree", []);
 
   var Element = function($gbl, $loc) {
     $loc.__init__ = new Sk.builtin.func(function(self, doc) {
@@ -20,7 +20,7 @@ var $builtinmodule = function(name) {
           i;
 
       self.tag       = doc.tagName;
-      self.text      = '';
+      self.text      = "";
       self.attrib    = [];
       self.children_ = [];
 
@@ -45,15 +45,15 @@ var $builtinmodule = function(name) {
         }
       }
 
-      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str('tag'),    new Sk.builtin.str(doc.tagName));
-      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str('attrib'), new Sk.builtin.dict(attrib));
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("tag"),    new Sk.builtin.str(doc.tagName));
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("attrib"), new Sk.builtin.dict(attrib));
 
       if (doc.childNodes) {
         for (i = 0; i < doc.childNodes.length; i++) {
           var child = Sk.misceval.callsim(mod.Element, doc.childNodes[i]);
           if (child.text !== undefined && !child.children_.length) {
             self.text = child.text;
-            Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str('text'), new Sk.builtin.str(child.text));
+            Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("text"), new Sk.builtin.str(child.text));
           }
           self.children_.push(child);
         }
@@ -84,7 +84,7 @@ var $builtinmodule = function(name) {
     };
 
     $loc.__str__ = new Sk.builtin.func(function(self) {
-      return Sk.ffi.remapToPy('<xml.etree.ElementTree.Element>');
+      return Sk.ffi.remapToPy("<xml.etree.ElementTree.Element>");
     });
 
     $loc.__iter__ = new Sk.builtin.func(function(self) {
@@ -181,7 +181,7 @@ var $builtinmodule = function(name) {
     });
 
     $loc.findtext = new Sk.builtin.func(function(self, path) {
-      var text = '';
+      var text = "";
       path = Sk.ffi.remapToJs(path);
 
       for (var i = 0; i < self.children_.length; i++) {
@@ -195,7 +195,7 @@ var $builtinmodule = function(name) {
     });
 
     $loc.get = new Sk.builtin.func(function(self, key) {
-      var val = '';
+      var val = "";
       key = Sk.ffi.remapToJs(key);
 
       for (var i = 0; i < self.attrib.length; i += 2) {
@@ -215,7 +215,7 @@ var $builtinmodule = function(name) {
       self.attrib.push(key);
       self.attrib.push(val);
 
-      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str('attrib'), new Sk.builtin.dict(self.attrib));
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("attrib"), new Sk.builtin.dict(self.attrib));
 
       return;
     });
@@ -250,17 +250,17 @@ var $builtinmodule = function(name) {
     });
 
     $loc.clear = new Sk.builtin.func(function(self) {
-      self.text      = '';
+      self.text      = "";
       self.attrib    = [];
       self.children_ = [];
 
-      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str('text'),   new Sk.builtin.str(self.text));
-      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str('attrib'), new Sk.builtin.dict(self.attrib));
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("text"),   new Sk.builtin.str(self.text));
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("attrib"), new Sk.builtin.dict(self.attrib));
     });
   };
 
   mod.Element =
-    Sk.misceval.buildClass(mod, Element, 'Element', []);
+    Sk.misceval.buildClass(mod, Element, "Element", []);
 
   mod.parse = new Sk.builtin.func(function(source) {
     return Sk.misceval.callsim(mod.ElementTree, source);
@@ -268,7 +268,7 @@ var $builtinmodule = function(name) {
 
   mod.fromstring = new Sk.builtin.func(function(text) {
     var parser = new DOMParser();
-    var doc = parser.parseFromString(text.v, 'application/xml');
+    var doc = parser.parseFromString(text.v, "application/xml");
     return Sk.misceval.callsim(mod.Element, doc.childNodes[0]);
   });
 
