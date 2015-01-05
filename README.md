@@ -9,7 +9,7 @@ This module is an attempt to reproduce some of the functionality provided by the
 
 ### fromstring and tostring
 
-These are the primary methods for parsing and displaying XML strings. `parse` and `XML` are aliases for `fromstring`.
+These are the primary methods for parsing and displaying XML strings. `parse` and `XML` are aliases for `fromstring`. `dump` is an alias for `tostring`.
 
 ### Element attributes and methods
 
@@ -21,12 +21,17 @@ These are the primary methods for parsing and displaying XML strings. `parse` an
 * items()
 * keys()
 * set()
+* append()
+* extend()
 * find()
 * findall()
 * findtext()
+* insert()
 * iter()
 * iterfind()
 * itertext()
+
+It is also possible to create elements and subelements using the `Element` constructor and `SubElement` method respectively.
 
 ### Python docs
 
@@ -34,7 +39,7 @@ Complete spec of the Python 2.x XML ElementTree implementation can be found at h
 
 ## TODO
 
-XPath, read/write files, building and modifying trees from SubElements, tostring encoding.
+XPath, read/write files, tostring encoding.
 
 ### Element attributes and methods
 

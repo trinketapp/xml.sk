@@ -19,7 +19,7 @@ var $builtinmodule = function(name) {
       var attrib = [],
           i;
 
-      self.tag       = doc.tagName;
+      self.tag       = doc instanceof Sk.builtin.str ? doc.v : doc.tagName;
       self.text      = "";
       self.attrib    = [];
       self.children_ = [];
@@ -28,8 +28,9 @@ var $builtinmodule = function(name) {
         self.text = doc.nodeValue;
       }
 
+      // if a Skulpt string, this is a call to Element("<str>")
       // if no children, this is the text inside an element
-      if (!doc.childNodes.length) {
+      if (doc instanceof Sk.builtin.str || !doc.childNodes.length) {
         return self;
       }
 
@@ -244,6 +245,11 @@ var $builtinmodule = function(name) {
       return new Sk.builtin.list(keys);
     });
 
+    $loc.insert = new Sk.builtin.func(function(self, index, element) {
+      index = Sk.ffi.remapToJs(index);
+      self.children_.splice(index, 0, element);
+    });
+
     // remove not yet implemented
     $loc.remove = new Sk.builtin.func(function(self, element) {
       throw new Sk.builtin.NotImplementedError("remove is not yet implemented");
@@ -256,6 +262,17 @@ var $builtinmodule = function(name) {
 
       Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("text"),   new Sk.builtin.str(self.text));
       Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("attrib"), new Sk.builtin.dict(self.attrib));
+    });
+
+    $loc.append = new Sk.builtin.func(function(self, element) {
+      self.children_.push(element);
+    });
+
+    $loc.extend = new Sk.builtin.func(function(self, elements) {
+      var it, i;
+      for (it = elements.tp$iter(), i = it.tp$iternext(); i !== undefined; i = it.tp$iternext()) {
+        self.children_.push(i);
+      }
     });
   };
 
@@ -300,6 +317,14 @@ var $builtinmodule = function(name) {
     xml_str = tag_start + element_content.join("") + tag_end;
 
     return new Sk.builtin.str(xml_str);
+  });
+
+  mod.dump = mod.tostring;
+
+  mod.SubElement = new Sk.builtin.func(function(parent, tag) {
+    var element = Sk.misceval.callsim(mod.Element, tag);
+    parent.children_.push(element);
+    return element;
   });
 
   return mod;
