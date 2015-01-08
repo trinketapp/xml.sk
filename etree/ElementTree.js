@@ -2,6 +2,18 @@ var $builtinmodule = function(name) {
   "use strict";
   var mod = {};
 
+  var getAllChildren = function(children_) {
+    var children = [];
+    for (var i = 0; i < children_.length; i++) {
+      children.push(children_[i]);
+      if (children_[i].children_.length) {
+        var grandchildren = getAllChildren(children_[i].children_);
+        children = children.concat(grandchildren);
+      }
+    }
+    return children;
+  };
+
   var ElementTree = function($gbl, $loc) {
     $loc.__init__ = new Sk.builtin.func(function(self, str) {
     });
@@ -28,12 +40,6 @@ var $builtinmodule = function(name) {
         self.text = doc.nodeValue;
       }
 
-      // if a Skulpt string, this is a call to Element("<str>")
-      // if no children, this is the text inside an element
-      if (doc instanceof Sk.builtin.str || !doc.childNodes.length) {
-        return self;
-      }
-
       if (doc.attributes) {
         for (i = 0; i < doc.attributes.length; i++) {
           self.attrib.push(doc.attributes[i].name);
@@ -46,8 +52,15 @@ var $builtinmodule = function(name) {
         }
       }
 
-      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("tag"),    new Sk.builtin.str(doc.tagName));
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("tag"),    new Sk.builtin.str(self.tag));
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("text"),   new Sk.builtin.str(self.text));
       Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("attrib"), new Sk.builtin.dict(attrib));
+
+      // if a Skulpt string, this is a call to Element("<str>")
+      // if no children, this is the text inside an element
+      if (doc instanceof Sk.builtin.str || !doc.childNodes.length) {
+        return self;
+      }
 
       if (doc.childNodes) {
         for (i = 0; i < doc.childNodes.length; i++) {
@@ -56,7 +69,9 @@ var $builtinmodule = function(name) {
             self.text = child.text;
             Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("text"), new Sk.builtin.str(child.text));
           }
-          self.children_.push(child);
+          if (child.tag !== undefined) {
+            self.children_.push(child);
+          }
         }
       }
 
@@ -102,56 +117,51 @@ var $builtinmodule = function(name) {
         $children : children
       });
     });
-    $loc.iter = $loc.__iter__;
+
+    var iter_f = function(kwa, self) {
+      var children = getAllChildren(self.children_),
+          kwargs   = new Sk.builtins.dict(kwa);
+
+      kwargs = Sk.ffi.remapToJs(kwargs);
+
+      if (kwargs.tag) {
+        children = children.filter(function(elem) {
+          return elem.tag === kwargs.tag;
+        });
+      }
+
+      return new Sk.builtin.list(children);
+    };
+
+    iter_f.co_kwargs = true;
+    $loc.iter = new Sk.builtin.func(iter_f);
 
     $loc.iterfind = new Sk.builtin.func(function(self, path) {
-      var children = self.children_;
+      var children = getAllChildren(self.children_);
+      var elements = [], i;
 
       path = Sk.ffi.remapToJs(path);
 
-      return Sk.builtin.makeGenerator(function() {
-        var index = this.$index;
-
-        if (index >= this.$children.length) {
-          return undefined;
+      for (i = 0; i < children.length; i++) {
+        if (children[i].tag === path) {
+          elements.push(children[i]);
         }
+      }
 
-        this.$index++;
-        if (this.$children[index].tag == path) {
-          return this.$children[index];
-        }
-      }, {
-        $obj      : self,
-        $index    : 0,
-        $children : children
-      });
+      return new Sk.builtin.list(elements);
     });
 
     $loc.itertext = new Sk.builtin.func(function(self) {
-      var children = self.children_;
+      var children = getAllChildren(self.children_),
+          text = [], i;
 
-      return Sk.builtin.makeGenerator(function() {
-        var index = this.$index;
-
-        if (index >= this.$children.length) {
-          return undefined;
+      for (i = 0; i < children.length; i++) {
+        if (children[i].text.length) {
+          text.push(children[i].text);
         }
+      }
 
-        this.$index++;
-        if (this.$children[index].text) {
-          return this.$children[index].text;
-        }
-
-        if (this.$children[index].children_.length) {
-          for (var i = 0; i < this.$children[index].children_.length; i++) {
-            return Sk.misceval.callsim($loc.itertext, this.$children[index].children_[i]);
-          }
-        }
-      }, {
-        $obj      : self,
-        $index    : 0,
-        $children : children
-      });
+      return new Sk.builtin.list(text);
     });
 
     $loc.findall = new Sk.builtin.func(function(self, path) {
