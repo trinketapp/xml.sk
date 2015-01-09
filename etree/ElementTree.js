@@ -118,11 +118,14 @@ var $builtinmodule = function(name) {
       });
     });
 
-    var iter_f = function(kwa, self) {
+    var iter_f = function(kwa, self, tag) {
       var children = getAllChildren(self.children_),
           kwargs   = new Sk.builtins.dict(kwa);
 
       kwargs = Sk.ffi.remapToJs(kwargs);
+      if (tag) {
+        kwargs.tag = Sk.ffi.remapToJs(tag);
+      }
 
       if (kwargs.tag) {
         children = children.filter(function(elem) {
@@ -296,7 +299,7 @@ var $builtinmodule = function(name) {
   mod.fromstring = new Sk.builtin.func(function(text) {
     var parser = new DOMParser();
     var doc = parser.parseFromString(text.v, "application/xml");
-    return Sk.misceval.callsim(mod.Element, doc.childNodes[0]);
+    return Sk.misceval.callsim(mod.Element, doc);
   });
 
   mod.XML = mod.parse = mod.fromstring;
