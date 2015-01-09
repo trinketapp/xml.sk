@@ -133,6 +133,7 @@ var $builtinmodule = function(name) {
         });
       }
 
+      children.unshift(self);
       return new Sk.builtin.list(children);
     };
 
@@ -299,7 +300,7 @@ var $builtinmodule = function(name) {
   mod.fromstring = new Sk.builtin.func(function(text) {
     var parser = new DOMParser();
     var doc = parser.parseFromString(text.v, "application/xml");
-    return Sk.misceval.callsim(mod.Element, doc);
+    return Sk.misceval.callsim(mod.Element, doc.childNodes[0]);
   });
 
   mod.XML = mod.parse = mod.fromstring;
