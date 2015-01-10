@@ -132,8 +132,10 @@ var $builtinmodule = function(name) {
           return elem.tag === kwargs.tag;
         });
       }
+      else {
+        children.unshift(self);
+      }
 
-      children.unshift(self);
       return new Sk.builtin.list(children);
     };
 
@@ -224,15 +226,23 @@ var $builtinmodule = function(name) {
     });
 
     $loc.set = new Sk.builtin.func(function(self, key, val) {
+      var attrib = [],
+          i, name, value;
+
       key = Sk.ffi.remapToJs(key);
       val = Sk.ffi.remapToJs(val);
 
       self.attrib.push(key);
       self.attrib.push(val);
 
-      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("attrib"), new Sk.builtin.dict(self.attrib));
+      for (i = 0; i < self.attrib.length; i += 2) {
+        name  = new Sk.builtin.str(self.attrib[i]);
+        value = new Sk.builtin.str(self.attrib[i + 1]);
+        attrib.push(name);
+        attrib.push(value);
+      }
 
-      return;
+      Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("attrib"), new Sk.builtin.dict(attrib));
     });
 
     $loc.items = new Sk.builtin.func(function(self) {
@@ -317,13 +327,12 @@ var $builtinmodule = function(name) {
     }
     tag_start += attrib_list + ">";
 
-    if (element.text) {
-      element_content.push( element.text );
+    for (i = 0; i < element.children_.length; i++) {
+      element_content.push( Sk.ffi.remapToJs( Sk.misceval.callsim(mod.tostring, element.children_[i]) ) );
     }
-    else {
-      for (i = 0; i < element.children_.length; i++) {
-        element_content.push( Sk.ffi.remapToJs( Sk.misceval.callsim(mod.tostring, element.children_[i]) ) );
-      }
+
+    if (/\S/.test(element.text)) {
+      element_content.push( element.text );
     }
 
     tag_end = "</" + element.tag + ">";
