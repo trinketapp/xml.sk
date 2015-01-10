@@ -50,11 +50,7 @@ XPath, read/write files, tostring encoding.
 
 ## Getting Started
 
-Create a basic html page:
-
-```html
-<!-- @TODO: replace with example markup... -->
-```
+The example.html file shows an example of basic usage. You'll need to change paths to skulpt and the xml module first.
 
 Add the xml.sk specific Skulpt configuration options
 ```js
