@@ -27,9 +27,10 @@ var $builtinmodule = function(name) {
     Sk.misceval.buildClass(mod, ElementTree, "ElementTree", []);
 
   var Element = function($gbl, $loc) {
-    $loc.__init__ = new Sk.builtin.func(function(self, doc) {
+    $loc.__init__ = new Sk.builtin.func(function(self, doc, user_attrib, kwa_attrib) {
       var attrib = [],
-          i;
+          user_attributes = [],
+          user_attrib_name, user_attrib_kwa_name, i;
 
       self.tag       = doc instanceof Sk.builtin.str ? doc.v : doc.tagName;
       self.text      = "";
@@ -40,16 +41,36 @@ var $builtinmodule = function(name) {
         self.text = doc.nodeValue;
       }
 
-      if (doc.attributes) {
-        for (i = 0; i < doc.attributes.length; i++) {
-          self.attrib.push(doc.attributes[i].name);
-          self.attrib.push(doc.attributes[i].value);
-
-          var name  = new Sk.builtin.str(doc.attributes[i].name);
-          var value = new Sk.builtin.str(doc.attributes[i].value);
-          attrib.push(name);
-          attrib.push(value);
+      if (doc instanceof Sk.builtin.str) {
+        if (user_attrib) {
+          for (user_attrib_name in user_attrib) {
+            user_attributes.push({
+              name  : user_attrib_name,
+              value : user_attrib[user_attrib_name]
+            });
+          }
         }
+        if (kwa_attrib) {
+          for (user_attrib_kwa_name in kwa_attrib) {
+            user_attributes.push({
+              name  : user_attrib_kwa_name,
+              value : kwa_attrib[user_attrib_kwa_name]
+            });
+          }
+        }
+      }
+      else if (doc.attributes) {
+        user_attributes = doc.attributes;
+      }
+
+      for (i = 0; i < user_attributes.length; i++) {
+        self.attrib.push(user_attributes[i].name);
+        self.attrib.push(user_attributes[i].value);
+
+        var name  = new Sk.builtin.str(user_attributes[i].name);
+        var value = new Sk.builtin.str(user_attributes[i].value);
+        attrib.push(name);
+        attrib.push(value);
       }
 
       Sk.abstr.objectSetItem(self.$d, new Sk.builtin.str("tag"),    new Sk.builtin.str(self.tag));
@@ -143,6 +164,8 @@ var $builtinmodule = function(name) {
     $loc.iter = new Sk.builtin.func(iter_f);
 
     $loc.iterfind = new Sk.builtin.func(function(self, path) {
+      Sk.builtin.pyCheckArgs("iterfind", arguments, 2, 2);
+
       var children = getAllChildren(self.children_);
       var elements = [], i;
 
@@ -171,6 +194,8 @@ var $builtinmodule = function(name) {
     });
 
     $loc.findall = new Sk.builtin.func(function(self, path) {
+      Sk.builtin.pyCheckArgs("findall", arguments, 2, 2);
+
       var list = [];
       path = Sk.ffi.remapToJs(path);
 
@@ -184,6 +209,8 @@ var $builtinmodule = function(name) {
     });
 
     $loc.find = new Sk.builtin.func(function(self, path) {
+      Sk.builtin.pyCheckArgs("find", arguments, 2, 2);
+
       var elem;
       path = Sk.ffi.remapToJs(path);
 
@@ -198,6 +225,8 @@ var $builtinmodule = function(name) {
     });
 
     $loc.findtext = new Sk.builtin.func(function(self, path) {
+      Sk.builtin.pyCheckArgs("findtext", arguments, 2, 2);
+
       var text = "";
       path = Sk.ffi.remapToJs(path);
 
@@ -212,6 +241,8 @@ var $builtinmodule = function(name) {
     });
 
     $loc.get = new Sk.builtin.func(function(self, key) {
+      Sk.builtin.pyCheckArgs("get", arguments, 2, 2);
+
       var val = "";
       key = Sk.ffi.remapToJs(key);
 
@@ -226,6 +257,8 @@ var $builtinmodule = function(name) {
     });
 
     $loc.set = new Sk.builtin.func(function(self, key, val) {
+      Sk.builtin.pyCheckArgs("set", arguments, 3, 3);
+
       var attrib = [],
           i, name, value;
 
@@ -270,6 +303,8 @@ var $builtinmodule = function(name) {
     });
 
     $loc.insert = new Sk.builtin.func(function(self, index, element) {
+      Sk.builtin.pyCheckArgs("insert", arguments, 3, 3);
+
       index = Sk.ffi.remapToJs(index);
       self.children_.splice(index, 0, element);
     });
@@ -344,11 +379,18 @@ var $builtinmodule = function(name) {
 
   mod.dump = mod.tostring;
 
-  mod.SubElement = new Sk.builtin.func(function(parent, tag) {
-    var element = Sk.misceval.callsim(mod.Element, tag);
+  var subelement_f = function(kwa, parent, tag, attrib) {
+    var kwargs = new Sk.builtins.dict(kwa);
+    kwargs = Sk.ffi.remapToJs(kwargs);
+    attrib = Sk.ffi.remapToJs(attrib || {});
+
+    var element = Sk.misceval.callsim(mod.Element, tag, attrib, kwargs);
     parent.children_.push(element);
     return element;
-  });
+  };
+
+  subelement_f.co_kwargs = true;
+  mod.SubElement = new Sk.builtin.func(subelement_f);
 
   return mod;
 };
